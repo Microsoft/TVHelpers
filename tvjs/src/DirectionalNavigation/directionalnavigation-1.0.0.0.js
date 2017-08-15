@@ -142,6 +142,11 @@
     **/
     var _focusRoot;
 
+    /**
+     * Gets/sets the elements to limit the querying at the focusRoot to determine the next focusable element
+     */
+    var _queriedElements;
+
     function _findNextFocusElement(direction, options) {
         var result = _findNextFocusElementInternal(direction, options);
         return result ? result.target : null;
@@ -224,7 +229,8 @@
             focusRoot: _focusRoot,
             historyRect: _historyRect,
             referenceElement: _lastTarget,
-            referenceRect: referenceRect
+            referenceRect: referenceRect,
+            queriedElements: _queriedElements
         });
         if (result && _trySetFocus(result.target, keyCode)) {
             // A focus target was found
@@ -332,6 +338,7 @@
         options = options || {};
         options.focusRoot = options.focusRoot || _focusRoot || document.body;
         options.historyRect = options.historyRect || _defaultRect();
+        options.queriedElements = options.queriedElements || FocusableTagNames.concat(FocusableSelectors).join(",");
         var maxDistance = Math.max(window.screen.availHeight, window.screen.availWidth);
         var refObj = getReferenceObject(options.referenceElement, options.referenceRect);
         // Handle override
@@ -361,7 +368,7 @@
             rect: null,
             score: 0
         };
-        var allElements = options.focusRoot.querySelectorAll("*");
+        var allElements = options.focusRoot.querySelectorAll(options.queriedElements);
         for (var i = 0, length = allElements.length; i < length; i++) {
             var potentialElement = allElements[i];
             if (refObj.element === potentialElement || !_isFocusable(potentialElement)) {
@@ -971,6 +978,7 @@
         keyCodeMap: _keyCodeMap,
         focusableSelectors: FocusableSelectors,
         moveFocus: _moveFocus,
+        queriedElements: _queriedElements,
         onfocuschanged: _createEventProperty(EventNames.focusChanged),
         onfocuschanging: _createEventProperty(EventNames.focusChanging),
         _xyFocus: _xyFocus,
@@ -999,6 +1007,16 @@
         },
         set: function (value) {
             _focusRoot = value;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(window.TVJS.DirectionalNavigation, "queriedElements", {
+        get: function () {
+            return _queriedElements;
+        },
+        set: function (value) {
+            _queriedElements = value;
         },
         enumerable: true,
         configurable: true
